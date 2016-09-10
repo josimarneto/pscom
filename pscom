@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+
+def extract_pid(line):
+	k = line.find(' ')
+	if(k > -1):
+		L = line[k + 1 :]
+		k = L.find(' ')
+		while k == 0:
+			L = L[k + 1 :]
+			k = L.find(' ')
+		pid = L
+	else:
+		pid = ''
+	k = pid.find(' ')
+	if(k > -1):
+		pid = pid[0 : k]
+	return pid
+
+def extract_cpu_load(line):
+	k = line.find(' ')
+	if(k > -1):
+		L = line[k + 1 :]
+		k = L.find(' ')
+		while k == 0:
+			L = L[k + 1 :]
+			k = L.find(' ')
+		k = L.find(' ')
+		if(k > -1):
+			L = L[k + 1 :]
+			k = L.find(' ')
+			while k == 0:
+				L = L[k + 1 :]
+				k = L.find(' ')
+			cpuload = L
+		else:
+			cpuload = ''
+	else:
+		cpuload = ''
+	k = cpuload.find(' ')
+	if(k > -1):
+		cpuload = cpuload[0 : k]
+	return cpuload
+
+def extract_name(line):
+	k = line.find(':')
+	if(k > -1):
+		L = line[k + 1 :]
+		k = L.find(' ')
+		while k == 0:
+			L = L[k + 1 :]
+			k = L.find(' ')
+		k = L.find(' ')
+		if(k > -1):
+			L = L[k + 1 :]
+			k = L.find(' ')
+			while k == 0:
+				L = L[k + 1 :]
+				k = L.find(' ')
+			name = L
+		else:
+			name = ''
+	else:
+		name = ''
+	k = name.find(' ')
+	if(k > -1):
+		name = name[k + 1 : ]
+	return name
+
+if len(sys.argv) != 2:
+	print('Usage: ')
+	print('pscom command_to_search')
+else:
+	command_to_search = sys.argv[1]
+	pipe_id = os.popen('ps -aux')
+	line = pipe_id.readline()
+	finished = 0
+	empty_lines = 0
+	while (finished == 0):
+		k = line.find(command_to_search)
+		if k > -1:
+			k_ = line.find('python3 /usr/bin/pscom ' + \
+			command_to_search)
+			if k_ == -1:
+				pid = extract_pid(line)
+				cpuload = extract_cpu_load(line)
+				name = extract_name(line)
+				print(pid + ' ' + cpuload + \
+				'               ' + name)
+		else:
+			if(len(line) < 2):
+				empty_lines += 1
+			else:
+				empty_lines = 0
+			if(empty_lines == 10):
+				finished = 1
+		line = pipe_id.readline()
+	pipe_id.close()
